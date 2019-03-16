@@ -44,17 +44,19 @@ kubectl apply -f ../gcp/helloweb-deployment.yaml
 # Get Pods
 kubectl get pods
 
-kubectl expose deployment hello-web --type=LoadBalancer --port 80 --target-port 8080
+kubectl expose deployment helloweb --type=LoadBalancer --port 80 --target-port 8080
+kubectl logs -l app=helloweb -c hello-app
+kubectl logs -l app=helloweb -c cloudsql-proxy
 
 # IP Assigned to service resource, not deployment
 kubectl get service
 
 # To Scale up 
-kubectl scale deployment hello-web --replicas=3
+kubectl scale deployment helloweb --replicas=3
 
 
 # See new replicas
-kubectl get deployment hello-web
+kubectl get deployment helloweb
 
 
 # To deploy a new version
