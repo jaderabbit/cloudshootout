@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloweb
+  labels:
+    app: hello
+spec:
+  selector:
+    matchLabels:
+      app: hello
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: hello
+        tier: web
+    spec:
+      containers:
+      - name: hello-app
+        image: gcr.io/google-samples/hello-app:1.0
+        ports:
+        - containerPort: 8080
+        env:
+          - name: DATABASE_HOST
+            value: 127.0.0.1
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                name: cloudsql-db-credentials
+                key: username
+          - name: DATABASE_PASS
+            valueFrom:
+              secretKeyRef:
+                name: cloudsql-db-credentials
+                key: password
+                
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy",
+                  "-instances=<INSTANCE_CONNECTION_NAME>=tcp:5432",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+        # [START cloudsql_security_context]
+        securityContext:
+          runAsUser: 2  # non-root user
+          allowPrivilegeEscalation: false
+        # [END cloudsql_security_context]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
+      # [END proxy_container]
+    # [START volumes]
+    volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials          
