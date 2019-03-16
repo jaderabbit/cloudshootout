@@ -4,14 +4,14 @@
 # KUBECTL
 gcloud components install kubectl
 
-gcloud config set project cloudshootout
+gcloud config set project cloud-shootout
 gcloud config set compute/zone us-central1-b
 
 git clone https://github.com/jaderabbit/cloudshootout.git
 cd cloudshootout/helloapp
 
 export PROJECT_ID="$(gcloud config get-value project -q)"
-export VERSION=v1
+export VERSION=v2
 
 docker build -t gcr.io/${PROJECT_ID}/hello-app:${VERSION} .
 
@@ -30,13 +30,16 @@ docker run --rm -p 8080:8080 gcr.io/${PROJECT_ID}/hello-app:${VERSION}
 curl http://localhost:8080
 
 # Create cluster with 3 nodes (#enough?!)
-gcloud container clusters create hello-cluster --num-nodes=3
+gcloud container clusters create cloudshootout --num-nodes=3
+
 
 # List the instances
 gcloud compute instances list
 
 # Version
-kubectl run hello-web --image=gcr.io/${PROJECT_ID}/hello-app:${VERSION} --port 8080
+#kubectl run hello-web --image=gcr.io/${PROJECT_ID}/hello-app:${VERSION} --port 8080
+# Update to use correct image.
+kubectl apply -f ../gcp/helloweb-deployment.yaml
 
 # Get Pods
 kubectl get pods
