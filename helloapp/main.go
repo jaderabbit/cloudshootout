@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	dbhost = "localhost"
-	dbport = 5432
-	dbuser = "test"
-	dbpass = "test"
-	dbname = "test"
+	dbhost   = "localhost"
+	dbport   = 5432
+	dbuser   = "test"
+	dbpass   = "test"
+	dbname   = "test"
+	psqlInfo = ""
 )
 
 func main() {
@@ -46,6 +47,13 @@ func main() {
 		dbname = fromEnv
 	}
 
+	// TODO: Move the connection into main maybe?
+	psqlInfo = fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		dbhost, dbport, dbuser, dbpass, dbname)
+
+	initTable()
+
 	// use PORT environment variable, or default to 8080
 	port := "8080"
 	if fromEnv := os.Getenv("PORT"); fromEnv != "" {
@@ -63,6 +71,33 @@ func main() {
 
 	// Seed random
 	rand.Seed(time.Now().UnixNano())
+}
+
+func initTable() {
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Successfully connected!")
+
+	// Create table if not exist
+	sqlStatement := `CREATE TABLE IF NOT EXISTS tests (
+		id SERIAL PRIMARY KEY,
+		random TEXT,
+		created_at timestamptz
+	);`
+
+	_, err = db.Exec(sqlStatement)
+	if err != nil {
+		panic(err)
+	}
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -85,11 +120,6 @@ type MyResponse struct {
 
 // hello responds to the request with a plain-text "Hello, world" message.
 func hello(w http.ResponseWriter, r *http.Request) {
-
-	// TODO: Move the connection into main maybe?
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		dbhost, dbport, dbuser, dbpass, dbname)
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
