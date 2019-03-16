@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: hello-app
-        image: gcr.io/google-samples/hello-app:1.0
+        image: gcr.io/cloud-shootout/hello-app:v2
         ports:
         - containerPort: 8080
         env:
@@ -37,7 +37,7 @@ spec:
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy",
-                  "-instances=<INSTANCE_CONNECTION_NAME>=tcp:5432",
+                  "-instances=cloud-shootout:us-central1:myinstance=tcp:5432",
                   "-credential_file=/secrets/cloudsql/credentials.json"]
         # [START cloudsql_security_context]
         securityContext:
